@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "build": "next build --webpack",
-    "postinstall": "npx npm-force-resolutions",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start"
@@ -66,7 +65,6 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
-    "viem": "2.7.5",
     "wagmi": "^2.19.4",
     "zod": "3.25.76"
   },
