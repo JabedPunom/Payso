@@ -1,0 +1,42 @@
+{
+  "network": "Arc Testnet",
+  "chainId": 5042002,
+  "rpcUrl": "https://rpc.testnet.arc.network",
+  "explorerUrl": "https://testnet.arcscan.app",
+  "deployedAt": "2025-11-15",
+  "deployer": "0x24f2c1199B390Ffe5de345495eDA04492dc4e12E",
+  "contracts": {
+    "USDC": {
+      "address": "0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e",
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "EURC": {
+      "address": "0xd2A490ac2e2eDAEb41a0DB39De526342B1a93Ac5",
+      "name": "Euro Coin",
+      "symbol": "EURC",
+      "decimals": 6
+    },
+    "FXRouter": {
+      "address": "0xEDC33756ecb474CFb717E9c709Cfb5121984e3A4",
+      "liquidityUSDC": "10000000000000",
+      "liquidityEURC": "10000000000000"
+    },
+    "PayrollEscrow": {
+      "address": "0xE0390bB3c6fF668fC48767d4f0D334897770CB51",
+      "employer": "0x24f2c1199B390Ffe5de345495eDA04492dc4e12E"
+    }
+  },
+  "fxRates": {
+    "USDC_to_EURC": "0.94",
+    "EURC_to_USDC": "1.06"
+  },
+  "explorerLinks": {
+    "USDC": "https://testnet.arcscan.app/address/0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e",
+    "EURC": "https://testnet.arcscan.app/address/0xd2A490ac2e2eDAEb41a0DB39De526342B1a93Ac5",
+    "FXRouter": "https://testnet.arcscan.app/address/0xEDC33756ecb474CFb717E9c709Cfb5121984e3A4",
+    "PayrollEscrow": "https://testnet.arcscan.app/address/0xE0390bB3c6fF668fC48767d4f0D334897770CB51"
+  }
+}
+

@@ -49,7 +49,7 @@ cp .env.example .env
 
 2. Edit `.env` and add your private key:
 ```bash
-PRIVATE_KEY=your_private_key_without_0x_prefix
+PRIVATE_KEY=0xyour_private_key_with_0x_prefix
 RPC_URL=https://rpc.testnet.arc.network
 CHAIN_ID=5042002
 EXPLORER_URL=https://testnet.arcscan.app
@@ -90,31 +90,44 @@ https://testnet.arcscan.app/address/YOUR_CONTRACT_ADDRESS
 
 ## 📝 Post-Deployment
 
-### Save Contract Addresses
+### ✅ Deployed Contract Addresses (Arc Testnet)
 
-Create a file to track your deployments:
-```bash
-echo "USDC=0x..." >> deployed-addresses.txt
-echo "EURC=0x..." >> deployed-addresses.txt
-echo "FXRouter=0x..." >> deployed-addresses.txt
-echo "PayrollEscrow=0x..." >> deployed-addresses.txt
-```
+**Deployment Date**: November 15, 2025
+**Deployer**: `0x24f2c1199B390Ffe5de345495eDA04492dc4e12E`
+
+| Contract | Address | Explorer Link |
+|----------|---------|---------------|
+| **USDC** | `0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e` | [View on Explorer](https://testnet.arcscan.app/address/0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e) |
+| **EURC** | `0xd2A490ac2e2eDAEb41a0DB39De526342B1a93Ac5` | [View on Explorer](https://testnet.arcscan.app/address/0xd2A490ac2e2eDAEb41a0DB39De526342B1a93Ac5) |
+| **FXRouter** | `0xEDC33756ecb474CFb717E9c709Cfb5121984e3A4` | [View on Explorer](https://testnet.arcscan.app/address/0xEDC33756ecb474CFb717E9c709Cfb5121984e3A4) |
+| **PayrollEscrow** | `0xE0390bB3c6fF668fC48767d4f0D334897770CB51` | [View on Explorer](https://testnet.arcscan.app/address/0xE0390bB3c6fF668fC48767d4f0D334897770CB51) |
+
+**FX Rates Configured**:
+- USDC → EURC: 0.94 (1 USDC = 0.94 EURC)
+- EURC → USDC: 1.06 (1 EURC = 1.06 USDC)
+
+**Initial Liquidity**:
+- FXRouter USDC Balance: 10,000,000 USDC
+- FXRouter EURC Balance: 10,000,000 EURC
+
+**Test Tokens Minted**:
+- Deployer received: 100,000 USDC and 100,000 EURC for testing
 
 ### Test the Deployment
 
 Run a test transaction:
 ```bash
 # 1. Approve USDC to PayrollEscrow
-cast send USDC_ADDRESS "approve(address,uint256)" PAYROLL_ESCROW_ADDRESS 1000000000 --rpc-url $RPC_URL --private-key $PRIVATE_KEY
+cast send 0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e "approve(address,uint256)" 0xE0390bB3c6fF668fC48767d4f0D334897770CB51 1000000000 --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 
 # 2. Schedule a payment (releaseAt = current timestamp + 1 hour)
-cast send PAYROLL_ESCROW_ADDRESS "depositAndSchedule(address,uint256,uint256,bool,address,address)" \
+cast send 0xE0390bB3c6fF668fC48767d4f0D334897770CB51 "depositAndSchedule(address,uint256,uint256,bool,address,address)" \
   EMPLOYEE_ADDRESS \
   1000000 \
   $(($(date +%s) + 3600)) \
   false \
-  USDC_ADDRESS \
-  USDC_ADDRESS \
+  0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e \
+  0xC7B1F6c93931c710aAf8fa54a6F3d3D477cd396e \
   --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 ```
 

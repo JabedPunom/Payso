@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {PayrollEscrow} from "../src/PayrollEscrow.sol";
-import {FXRouter} from "../src/FXRouter.sol";
-import {MockStablecoin} from "../src/MockStablecoin.sol";
+import {PayrollEscrow} from "src/PayrollEscrow.sol";
+import {FXRouter} from "src/FXRouter.sol";
+import {MockStablecoin} from "src/MockStablecoin.sol";
 
 /**
  * @title Deploy

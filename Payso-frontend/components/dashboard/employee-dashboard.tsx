@@ -1,6 +1,7 @@
 'use client'
 
 import { useAccount } from 'wagmi'
+import { useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +21,7 @@ export function EmployeeDashboard() {
       toast.success(props.title, { description: props.description })
     }
   }
-  const { claimPayment, isPending, isConfirming } = usePayrollEscrow()
+  const { claimPayment, isPending, isConfirming, receipt, error } = usePayrollEscrow()
   
   const { data: paymentIds, isLoading: isLoadingIds } = useGetPaymentsByRecipient(
     address || '0x0000000000000000000000000000000000000000'
@@ -29,10 +30,6 @@ export function EmployeeDashboard() {
   const handleClaimPayment = async (paymentId: bigint) => {
     try {
       await claimPayment(paymentId)
-      showToast({
-        title: 'Payment claimed',
-        description: 'Your payment has been successfully claimed.',
-      })
     } catch (error) {
       console.error('Error claiming payment:', error)
       showToast({
@@ -42,6 +39,22 @@ export function EmployeeDashboard() {
       })
     }
   }
+
+  useEffect(() => {
+    if (receipt) {
+      showToast({
+        title: 'Payment claimed',
+        description: 'Your payment has been successfully claimed.',
+      })
+    }
+    if (error) {
+      showToast({
+        title: 'Error',
+        description: 'Transaction failed. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }, [receipt, error])
 
   const getStatusBadge = (status: string) => {
     switch (status) {

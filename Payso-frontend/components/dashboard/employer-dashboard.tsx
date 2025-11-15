@@ -52,6 +52,9 @@ export function EmployerDashboard() {
     preferredPayout: CONTRACT_ADDRESSES.EURC,
   })
 
+  // Amount validation state
+  const [amountError, setAmountError] = useState('')
+
   const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
 
   // Custom date picker state
@@ -97,6 +100,26 @@ export function EmployerDashboard() {
       showToast({
         title: 'Access denied',
         description: 'Only the employer can schedule payments.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Validate amount
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      showToast({
+        title: 'Invalid amount',
+        description: 'Please enter a valid amount greater than 0.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Validate amount format
+    if (!/^\d*\.?\d{0,6}$/.test(formData.amount)) {
+      showToast({
+        title: 'Invalid amount format',
+        description: 'Amount must have maximum 6 decimal places.',
         variant: 'destructive',
       })
       return
@@ -208,16 +231,86 @@ export function EmployerDashboard() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="1000.00"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  required
-                />
+                <Label htmlFor="amount">
+                  Amount
+                  <span className="text-xs text-white/50 ml-2">6 decimal places</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.000001"
+                    min="0"
+                    placeholder="1000.00"
+                    value={formData.amount}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Allow only positive numbers and proper decimal format
+                      if (value === '' || /^\d*\.?\d{0,6}$/.test(value)) {
+                        setFormData({ ...formData, amount: value })
+                        
+                        // Validate amount
+                        if (value && parseFloat(value) <= 0) {
+                          setAmountError('Amount must be greater than 0')
+                        } else if (value && !/^\d*\.?\d{0,6}$/.test(value)) {
+                          setAmountError('Maximum 6 decimal places allowed')
+                        } else {
+                          setAmountError('')
+                        }
+                      }
+                    }}
+                    required
+                    className="pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-white/40 pointer-events-none">
+                    {STABLECOIN_SYMBOLS[formData.stablecoin as keyof typeof STABLECOIN_SYMBOLS] || 'USDC'}
+                  </span>
+                </div>
+                <p className="text-xs text-white/60">
+                  Enter amount in {STABLECOIN_SYMBOLS[formData.stablecoin as keyof typeof STABLECOIN_SYMBOLS] || 'USDC'} 
+                  (supports up to 6 decimal places)
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-white/40">💡</span>
+                  <span className="text-xs text-white/40">
+                    1 {STABLECOIN_SYMBOLS[formData.stablecoin as keyof typeof STABLECOIN_SYMBOLS] || 'USDC'} = 1,000,000 units (6 decimals)
+                  </span>
+                </div>
+                {amountError && (
+                  <p className="text-xs text-red-400 mt-1">{amountError}</p>
+                )}
+                <div className="flex gap-2 mt-1">
+                  <button
+                    type="button"
+                    className="text-xs text-white/40 hover:text-white/60 underline transition-colors"
+                    onClick={() => {
+                      setFormData({ ...formData, amount: '100' })
+                      setAmountError('')
+                    }}
+                  >
+                    100
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs text-white/40 hover:text-white/60 underline transition-colors"
+                    onClick={() => {
+                      setFormData({ ...formData, amount: '1000.50' })
+                      setAmountError('')
+                    }}
+                  >
+                    1000.50
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs text-white/40 hover:text-white/60 underline transition-colors"
+                    onClick={() => {
+                      setFormData({ ...formData, amount: '5000.123456' })
+                      setAmountError('')
+                    }}
+                  >
+                    5000.123456
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">

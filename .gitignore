@@ -20,4 +20,4 @@ docs/
 
 # Dotenv file
 .env
-
+.env.example
