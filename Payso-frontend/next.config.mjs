@@ -77,6 +77,53 @@ const nextConfig = {
       use: 'ignore-loader',
     });
     
+    // Fix WalletConnect/Viem import errors by ignoring test decorators
+    config.module.rules.unshift({
+      test: /node_modules\/@reown\/appkit-controllers\/node_modules\/@walletconnect\/utils\/node_modules\/viem\/.*\/test\.js$/,
+      use: 'ignore-loader',
+    });
+    
+    config.module.rules.unshift({
+      test: /node_modules\/@walletconnect\/.*\/test\.js$/,
+      use: 'ignore-loader',
+    });
+    
+    // Add specific rule for viem test imports
+    config.module.rules.unshift({
+      test: /viem\/.*\/test\.js$/,
+      use: 'ignore-loader',
+    });
+    
+    // Add rule for test decorator files
+    config.module.rules.unshift({
+      test: /clients\/decorators\/test\.js$/,
+      use: 'ignore-loader',
+    });
+    
+    // Optimize bundle size
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          walletconnect: {
+            test: /[\\/]node_modules[\\/](@walletconnect|@reown)[\\/]/,
+            name: 'walletconnect',
+            chunks: 'all',
+            priority: 10,
+          },
+        },
+      },
+    };
+    
+    // Disable webpack cache to reduce bundle size
+    config.cache = false;
+    
     // Exclude all test files
     config.module.rules.push({
       test: /\.test\.(js|ts|mjs)$/,
@@ -138,6 +185,10 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,
+  // Optimize bundle size
+  experimental: {
+    optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem'],
+  },
 };
 
 export default nextConfig;
