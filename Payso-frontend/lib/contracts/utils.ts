@@ -81,8 +81,8 @@ export function getStatusBadge(status: string) {
     pending: { className: 'bg-yellow-500/10 text-yellow-400', text: 'Pending' },
     work_required: { className: 'bg-purple-500/10 text-purple-400', text: 'Work Required' },
   }
-  
+
   const variant = variants[status as keyof typeof variants] || { className: 'bg-gray-500/10 text-gray-400', text: 'Unknown' }
-  
+
   return { className: `px-2 py-1 rounded-full text-xs ${variant.className}`, text: variant.text }
 }
