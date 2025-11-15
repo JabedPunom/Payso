@@ -12,7 +12,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem', 'framer-motion', '@reown/appkit', '@walletconnect'],
   },
-  // Configure Turbopack compatibility
+  // Empty Turbopack config to satisfy Next.js 16
   turbopack: {},
   webpack: (config) => {
     // Add comprehensive test file exclusions
@@ -44,11 +44,11 @@ const nextConfig = {
       'thread-stream': false,
     };
 
-    // Exclude problematic packages from bundling
-    config.externals = {
-      ...config.externals,
-      'thread-stream': 'commonjs thread-stream',
-    };
+    // Fix externals configuration - use array format
+    if (!Array.isArray(config.externals)) {
+      config.externals = config.externals ? [config.externals] : [];
+    }
+    config.externals.push('thread-stream');
 
     return config;
   },
