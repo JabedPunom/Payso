@@ -14,6 +14,13 @@ Payso is a revolutionary blockchain-powered payroll escrow service that automate
 - **Work Verification**: Optional work verification system to ensure deliverables before payment release
 - **Dispute Prevention**: Immutable smart contracts eliminate payment disputes
 
+### 🔑 Multi-Employer Authorization System (NEW!)
+- **Revolutionary Testing Feature**: Main employers can authorize multiple addresses for testing and operational purposes
+- **Judge & Auditor Support**: Perfect for hackathons, audits, and team collaboration
+- **Secure Authorization**: Blockchain-based authorization with granular permissions
+- **Easy Management**: Simple add/remove interface in settings page
+- **Full Testing Capability**: Authorized employers can schedule payments and verify work independently
+
 ### 👥 Dual Dashboard System
 - **Employer Dashboard**: Schedule payments, manage employees, and track payment history
 - **Employee Dashboard**: View scheduled payments, claim available funds, and track payment status
@@ -120,13 +127,17 @@ pnpm build
 
 1. **Connect Wallet**: Connect your Web3 wallet to the platform
 2. **Switch to Employer Mode**: Navigate to the employer dashboard
-3. **Schedule Payment**: 
+3. **Authorize Testing Addresses** (Optional): 
+   - Go to Settings → Employer Authorization
+   - Add judge/auditor addresses for testing
+   - Verify authorization status
+4. **Schedule Payment**: 
    - Enter employee wallet address
    - Set payment amount and currency
    - Choose release date and time
    - Optionally enable work verification
-4. **Approve Tokens**: Approve the smart contract to spend your tokens
-5. **Confirm Payment**: Review and confirm the payment schedule
+5. **Approve Tokens**: Approve the smart contract to spend your tokens
+6. **Confirm Payment**: Review and confirm the payment schedule
 
 ### For Employees
 
@@ -187,6 +198,13 @@ For support and questions:
 
 ## Roadmap
 
+### ✅ Completed Features
+- **Multi-Employer Authorization System**: Revolutionary testing feature allowing multiple judges/auditors to test the system independently
+- **Smart Contract Escrow**: Automated payment scheduling with work verification
+- **Multi-Currency Support**: USDC and EURC stablecoin integration
+- **Dual Dashboard System**: Separate interfaces for employers and employees
+
+### 🚀 Upcoming Features
 - **Multi-chain Support**: Expand to additional blockchain networks
 - **Mobile App**: Native mobile applications
 - **Advanced Analytics**: Enhanced reporting and analytics features

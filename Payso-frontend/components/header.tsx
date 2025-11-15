@@ -111,6 +111,16 @@ export function Header() {
             >
               Payroll
             </button>
+            <Link 
+              href="/how-it-works"
+              className={`transition-all duration-300 ${
+                isScrolled 
+                  ? 'text-white/70 hover:text-white text-sm' 
+                  : 'text-white/80 hover:text-white'
+              }`}
+            >
+              How It Works
+            </Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -227,6 +237,13 @@ export function Header() {
             >
               Payroll
             </button>
+            <Link
+              href="/how-it-works"
+              onClick={() => setMobileOpen(false)}
+              className="text-white/80 hover:text-white transition-colors text-left"
+            >
+              How It Works
+            </Link>
             <Button
               variant="ghost"
               className="justify-start text-white/80 hover:text-white transition-colors"

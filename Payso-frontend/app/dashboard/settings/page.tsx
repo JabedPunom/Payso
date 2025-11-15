@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Settings, User, Bell, Shield, Wallet } from 'lucide-react'
 import { useEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
 import { formatAddress } from '@/lib/utils'
+import { EmployerAuthorization } from '@/components/dashboard/employer-authorization'
 
 export default function SettingsPage() {
   const { address, isConnected, connector } = useAccount()
@@ -154,6 +155,11 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Employer Authorization - Only show for employers */}
+            {isEmployer && employer && (
+              <EmployerAuthorization mainEmployer={employer as string} />
+            )}
           </div>
         )}
       </div>
