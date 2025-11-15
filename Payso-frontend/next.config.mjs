@@ -6,9 +6,26 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Use empty turbopack config to avoid conflicts
-  turbopack: {},
-  webpack: (config) => {
+  // Configure Turbopack to handle thread-stream package properly
+  experimental: {
+    turbo: {
+      rules: {
+        // Exclude test files and problematic modules from Turbopack processing
+        '**/test/**': { loader: 'ignore-loader' },
+        '**/*.test.{js,ts,mjs}': { loader: 'ignore-loader' },
+        '**/node_modules/thread-stream/test/**': { loader: 'ignore-loader' },
+        '**/node_modules/thread-stream/*.test.{js,ts,mjs}': { loader: 'ignore-loader' },
+        '**/node_modules/thread-stream/LICENSE': { loader: 'ignore-loader' },
+        '**/node_modules/thread-stream/README.md': { loader: 'ignore-loader' },
+        '**/node_modules/tap/**': { loader: 'ignore-loader' },
+        '**/node_modules/tape/**': { loader: 'ignore-loader' },
+        '**/node_modules/why-is-node-running/**': { loader: 'ignore-loader' },
+        '**/node_modules/desm/**': { loader: 'ignore-loader' },
+      },
+    },
+  },
+  // Configure webpack as fallback
+  webpack: (config, { isServer }) => {
     // Exclude test files and problematic modules from webpack bundling
     config.module.rules.push({
       test: /node_modules\/thread-stream\/test/,
@@ -27,6 +44,7 @@ const nextConfig = {
       'tap': false,
       'tape': false,
       'why-is-node-running': false,
+      'desm': false,
     };
     
     // Add fallback for Node.js modules that shouldn't be bundled
@@ -59,6 +77,10 @@ const nextConfig = {
     
     return config;
   },
+  // Production optimizations
+  productionBrowserSourceMaps: false,
+  compress: true,
+  poweredByHeader: false,
 };
 
 export default nextConfig;

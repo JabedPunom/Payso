@@ -1,0 +1,16 @@
+{
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "cache": false,
+  "env": {
+    "NEXT_WEBPACK_USE_EXTERNAL_DIR": "true",
+    "TURBOPACK": "false"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  }
+}
