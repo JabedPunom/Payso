@@ -53,3 +53,8 @@ export function getPaymentStatus(
   if (requiresWorkEvent && !workVerified) return 'work_required'
   return 'claimable'
 }
+
+export function formatAddress(address: string): string {
+  if (!address) return ''
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
