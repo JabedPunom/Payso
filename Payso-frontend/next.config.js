@@ -20,7 +20,7 @@ const nextConfig = {
       /node_modules\/.*\/test\./,
       /node_modules\/.*\/tests\./,
       /node_modules\/.*\/__tests__\./,
-      /node_modules\/thread-stream/,
+      /node_modules\/thread-stream\/test/,
       /testActions/,
       /clients\/decorators\/test/,
       /_esm\/clients\/decorators\/test/,
@@ -42,6 +42,12 @@ const nextConfig = {
       'desm': false,
       'testActions': false,
       'thread-stream': false,
+    };
+
+    // Exclude problematic packages from bundling
+    config.externals = {
+      ...config.externals,
+      'thread-stream': 'commonjs thread-stream',
     };
 
     return config;
