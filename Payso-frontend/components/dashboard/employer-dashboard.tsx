@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useToast } from 'sonner'
+import { toast } from 'sonner'
 import { Calendar } from 'lucide-react'
 import { usePayrollEscrow, useEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
 import { useApproveToken } from '@/lib/contracts/hooks/useToken'
@@ -17,17 +17,11 @@ import { formatTokenAmount, parseTokenAmount } from '@/lib/contracts/utils'
 
 export function EmployerDashboard() {
   const { address, isConnected } = useAccount()
-  const toast = (props: {title: string, description?: string, variant?: 'default' | 'destructive'}) => {
+  const showToast = (props: {title: string, description?: string, variant?: 'default' | 'destructive'}) => {
     if (props.variant === 'destructive') {
-      // @ts-ignore
-      import('sonner').then(({ toast: sonnerToast }) => {
-        sonnerToast.error(props.title, { description: props.description })
-      })
+      toast.error(props.title, { description: props.description })
     } else {
-      // @ts-ignore
-      import('sonner').then(({ toast: sonnerToast }) => {
-        sonnerToast.success(props.title, { description: props.description })
-      })
+      toast.success(props.title, { description: props.description })
     }
   }
   const { depositAndSchedule, isPending, isConfirming } = usePayrollEscrow()
@@ -44,13 +38,13 @@ export function EmployerDashboard() {
     preferredPayout: CONTRACT_ADDRESSES.EURC,
   })
 
-  const isEmployer = address && employer && address.toLowerCase() === employer.toLowerCase()
+  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!isConnected) {
-      toast({
+      showToast({
         title: 'Wallet not connected',
         description: 'Please connect your wallet to schedule a payment.',
         variant: 'destructive',
@@ -59,7 +53,7 @@ export function EmployerDashboard() {
     }
 
     if (!isEmployer) {
-      toast({
+      showToast({
         title: 'Access denied',
         description: 'Only the employer can schedule payments.',
         variant: 'destructive',
@@ -73,7 +67,7 @@ export function EmployerDashboard() {
       const currentTimestamp = Math.floor(Date.now() / 1000)
 
       if (releaseTimestamp <= currentTimestamp) {
-        toast({
+        showToast({
           title: 'Invalid release time',
           description: 'Release time must be in the future.',
           variant: 'destructive',
@@ -98,7 +92,7 @@ export function EmployerDashboard() {
         formData.preferredPayout
       )
 
-      toast({
+      showToast({
         title: 'Payment scheduled',
         description: 'Your payment has been successfully scheduled.',
       })
@@ -115,7 +109,7 @@ export function EmployerDashboard() {
       })
     } catch (error) {
       console.error('Error scheduling payment:', error)
-      toast({
+      showToast({
         title: 'Error',
         description: 'Failed to schedule payment. Please try again.',
         variant: 'destructive',
@@ -214,7 +208,7 @@ export function EmployerDashboard() {
                 <Label htmlFor="stablecoin">Payment Token</Label>
                 <Select
                   value={formData.stablecoin}
-                  onValueChange={(value) => setFormData({ ...formData, stablecoin: value })}
+                  onValueChange={(value) => setFormData({ ...formData, stablecoin: value as typeof CONTRACT_ADDRESSES.USDC })}
                 >
                   <SelectTrigger id="stablecoin">
                     <SelectValue />
@@ -230,7 +224,7 @@ export function EmployerDashboard() {
                 <Label htmlFor="preferredPayout">Payout Token</Label>
                 <Select
                   value={formData.preferredPayout}
-                  onValueChange={(value) => setFormData({ ...formData, preferredPayout: value })}
+                  onValueChange={(value) => setFormData({ ...formData, preferredPayout: value as typeof CONTRACT_ADDRESSES.EURC })}
                 >
                   <SelectTrigger id="preferredPayout">
                     <SelectValue />

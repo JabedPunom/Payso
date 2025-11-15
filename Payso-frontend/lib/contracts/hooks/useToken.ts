@@ -9,7 +9,9 @@ export function useTokenBalance(tokenAddress: Address, account: Address | undefi
     abi: ERC20ABI,
     functionName: 'balanceOf',
     args: account ? [account] : undefined,
-    enabled: !!account,
+    query: {
+      enabled: !!account,
+    },
   })
 }
 
@@ -23,7 +25,9 @@ export function useTokenAllowance(
     abi: ERC20ABI,
     functionName: 'allowance',
     args: owner ? [owner, spender] : undefined,
-    enabled: !!owner,
+    query: {
+      enabled: !!owner,
+    },
   })
 }
 

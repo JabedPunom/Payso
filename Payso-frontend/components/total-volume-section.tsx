@@ -1,6 +1,6 @@
 "use client"
 
-import { Wallet, Shield, LayoutDashboard } from 'lucide-react'
+import {  LayoutDashboard } from 'lucide-react'
 import { useAccount, useBalance } from 'wagmi'
 import { Button } from '@/components/ui/button'
 
@@ -34,7 +34,7 @@ export function TotalVolumeSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
             <div className="relative bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:border-white/20 transition-all duration-300 hover:translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mb-6">
-                <Wallet className="h-8 w-8 text-white" />
+                <img src="/wallet_.png" alt="Wallet" className="h-8 w-8 text-white" />
               </div>
               <div className="space-y-2 mb-6">
                 <h3 className="text-2xl font-bold text-white">Wallet Balance</h3>
@@ -60,7 +60,7 @@ export function TotalVolumeSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
             <div className="relative bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:border-white/20 transition-all duration-300 hover:translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-6">
-                <Shield className="h-8 w-8 text-white" />
+                <img src="/shield_.png" alt="Shield" className="h-8 w-8 text-white" />
               </div>
               <div className="space-y-2 mb-6">
                 <h3 className="text-2xl font-bold text-white">Escrow Balance</h3>
@@ -78,7 +78,7 @@ export function TotalVolumeSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
             <div className="relative bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:border-white/20 transition-all duration-300 hover:translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-6">
-                <LayoutDashboard className="h-8 w-8 text-white" />
+                <img src="/start_.png" alt="Dashboard" className="h-8 w-8 text-white" />
               </div>
               <div className="space-y-2 mb-6">
                 <h3 className="text-2xl font-bold text-white">Start Payroll</h3>

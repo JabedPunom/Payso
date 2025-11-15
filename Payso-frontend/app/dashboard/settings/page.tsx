@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const { address, isConnected, connector } = useAccount()
   const { data: employer } = useEmployer()
 
-  const isEmployer = address && employer && address.toLowerCase() === employer.toLowerCase()
+  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
 
   return (
     <DashboardLayout>
@@ -50,7 +50,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-white/80">Connected Address</span>
                   <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-400">
-                    {formatAddress(address)}
+                    {formatAddress(address || '')}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">

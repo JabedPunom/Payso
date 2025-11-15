@@ -98,7 +98,7 @@ export function TestimonialsSection() {
           {testimonials.map((testimonial, index) => (
             <div 
               key={index} 
-              ref={el => cardRefs.current[index] = el}
+              ref={(el: HTMLDivElement | null) => { cardRefs.current[index] = el }}
               className="relative group opacity-0"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>

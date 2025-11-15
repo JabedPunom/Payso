@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Clock, ExternalLink } from 'lucide-react'
 import { useEmployer, useGetPaymentsByRecipient } from '@/lib/contracts/hooks/usePayrollEscrow'
-import { formatTokenAmount, formatDateTime, getPaymentStatus } from '@/lib/contracts/utils'
+import { formatTokenAmount, formatDateTime, getPaymentStatus, formatAddress } from '@/lib/contracts/utils'
 import { CONTRACT_ADDRESSES, STABLECOIN_SYMBOLS } from '@/lib/contracts/config'
 import { formatUnits } from 'viem'
 
@@ -15,11 +15,11 @@ export default function ScheduledPage() {
   const { data: employer } = useEmployer()
   const { data: paymentIds, isLoading } = useGetPaymentsByRecipient(address || '0x0000000000000000000000000000000000000000')
 
-  const isEmployer = address && employer && address.toLowerCase() === employer.toLowerCase()
+  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
 
   // Filter for pending payments (scheduled but not yet claimable)
-  const pendingPayments = paymentIds?.filter((payment: any) => {
-    const status = getPaymentStatus(payment)
+  const pendingPayments = (paymentIds as any[])?.filter((payment: any) => {
+    const status = getPaymentStatus(payment.claimed, payment.releaseAt, payment.workVerified, payment.requiresWorkEvent, Date.now())
     return status === 'pending'
   }) || []
 
@@ -77,7 +77,7 @@ export default function ScheduledPage() {
                         <div>
                           <p className="text-sm text-white/60">Amount</p>
                           <p className="text-lg font-semibold text-white">
-                            {formatTokenAmount(payment.amount)} {STABLECOIN_SYMBOLS[payment.stablecoin]}
+                            {formatTokenAmount(payment.amount as bigint)} {STABLECOIN_SYMBOLS[payment.stablecoin as keyof typeof STABLECOIN_SYMBOLS]}
                           </p>
                         </div>
                         <div>
@@ -89,7 +89,7 @@ export default function ScheduledPage() {
                         <div>
                           <p className="text-sm text-white/60">Preferred Payout</p>
                           <p className="text-lg font-semibold text-white">
-                            {STABLECOIN_SYMBOLS[payment.preferredPayout]}
+                            {STABLECOIN_SYMBOLS[payment.preferredPayout as keyof typeof STABLECOIN_SYMBOLS]}
                           </p>
                         </div>
                         <div>

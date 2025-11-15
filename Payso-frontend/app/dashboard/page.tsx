@@ -20,12 +20,12 @@ export default function DashboardPage() {
   const { data: usdcBalance } = useTokenBalance(CONTRACT_ADDRESSES.USDC, address)
   const { data: eurcBalance } = useTokenBalance(CONTRACT_ADDRESSES.EURC, address)
 
-  const isEmployer = address && employer && address.toLowerCase() === employer.toLowerCase()
+  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
 
   // Calculate stats
-  const totalPayments = paymentIds?.length || 0
-  const claimablePayments = paymentIds?.filter((payment: any) => !payment.claimed && payment.releaseAt * 1000 <= Date.now()).length || 0
-  const totalValue = paymentIds?.reduce((sum: number, payment: any) => sum + Number(payment.amount), 0) || 0
+  const totalPayments = (paymentIds as any[])?.length || 0
+  const claimablePayments = (paymentIds as any[])?.filter((payment: any) => !payment.claimed && payment.releaseAt * 1000 <= Date.now()).length || 0
+  const totalValue = (paymentIds as any[])?.reduce((sum: number, payment: any) => sum + Number(payment.amount), 0) || 0
 
   // Quick action handlers
   const handleSchedulePayment = () => {
@@ -103,7 +103,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">
-                    {usdcBalance ? formatTokenAmount(usdcBalance) : '0.00'}
+                    {usdcBalance ? formatTokenAmount(usdcBalance as bigint) : '0.00'}
                   </div>
                   <p className="text-xs text-white/60">USDC tokens</p>
                 </CardContent>
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">
-                    {eurcBalance ? formatTokenAmount(eurcBalance) : '0.00'}
+                    {eurcBalance ? formatTokenAmount(eurcBalance as bigint) : '0.00'}
                   </div>
                   <p className="text-xs text-white/60">EURC tokens</p>
                 </CardContent>

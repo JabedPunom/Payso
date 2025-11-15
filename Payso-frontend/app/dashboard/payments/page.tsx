@@ -10,7 +10,7 @@ export default function PaymentsPage() {
   const { address, isConnected } = useAccount()
   const { data: employer } = useEmployer()
 
-  const isEmployer = address && employer && address.toLowerCase() === employer.toLowerCase()
+  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
 
   return (
     <DashboardLayout>

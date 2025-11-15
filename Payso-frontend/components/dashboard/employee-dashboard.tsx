@@ -100,13 +100,13 @@ export function EmployeeDashboard() {
             <div className="text-center py-8">
               <div className="animate-pulse text-muted-foreground">Loading payments...</div>
             </div>
-          ) : !paymentIds || paymentIds.length === 0 ? (
+          ) : !paymentIds || (paymentIds as any[]).length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No payments found</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {paymentIds.map((paymentId) => (
+              {(paymentIds as any[]).map((paymentId: any) => (
                 <PaymentCard
                   key={paymentId.toString()}
                   paymentId={paymentId}
@@ -137,18 +137,58 @@ function PaymentCard({
 
   if (!payment) return null
 
+  const paymentData = payment as {
+    claimed: boolean
+    releaseAt: bigint
+    amount: bigint
+    preferredPayout: string
+    stablecoin: string
+    requiresWorkEvent: boolean
+    employer: string
+    recipient: string
+  }
   const currentTimestamp = Math.floor(Date.now() / 1000)
   const status = getPaymentStatus(
-    payment.claimed,
-    payment.releaseAt,
-    workVerified || false,
-    payment.requiresWorkEvent,
+    paymentData.claimed,
+    paymentData.releaseAt,
+    Boolean(workVerified),
+    paymentData.requiresWorkEvent,
     currentTimestamp
   )
 
-  const amount = formatTokenAmount(payment.amount)
-  const payoutSymbol = STABLECOIN_SYMBOLS[payment.preferredPayout] || 'Unknown'
-  const depositSymbol = STABLECOIN_SYMBOLS[payment.stablecoin] || 'Unknown'
+  const amount = formatTokenAmount(paymentData.amount)
+  const payoutSymbol = STABLECOIN_SYMBOLS[paymentData.preferredPayout as keyof typeof STABLECOIN_SYMBOLS] || 'Unknown'
+  const depositSymbol = STABLECOIN_SYMBOLS[paymentData.stablecoin as keyof typeof STABLECOIN_SYMBOLS] || 'Unknown'
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'claimed':
+        return <CheckCircle className="h-4 w-4 text-green-400" />
+      case 'claimable':
+        return <CheckCircle className="h-4 w-4 text-blue-400" />
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-400" />
+      case 'work_required':
+        return <AlertCircle className="h-4 w-4 text-orange-400" />
+      default:
+        return <XCircle className="h-4 w-4 text-red-400" />
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'claimed':
+        return <Badge variant="secondary" className="bg-green-500/10 text-green-400">Claimed</Badge>
+      case 'claimable':
+        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-400">Ready to Claim</Badge>
+      case 'pending':
+        return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-400">Pending</Badge>
+      case 'work_required':
+        return <Badge variant="secondary" className="bg-orange-500/10 text-orange-400">Work Required</Badge>
+      default:
+        return <Badge variant="outline">Unknown</Badge>
+    }
+  }
 
   return (
     <div className="border rounded-lg p-4 space-y-3">
@@ -171,9 +211,9 @@ function PaymentCard({
         </div>
         <div>
           <span className="text-muted-foreground">Release Time:</span>
-          <div className="font-medium">{formatDateTime(Number(payment.releaseAt))}</div>
+          <div className="font-medium">{formatDateTime(Number(paymentData.releaseAt))}</div>
         </div>
-        {payment.requiresWorkEvent && (
+        {paymentData.requiresWorkEvent && (
           <div>
             <span className="text-muted-foreground">Work Status:</span>
             <div className="font-medium">
