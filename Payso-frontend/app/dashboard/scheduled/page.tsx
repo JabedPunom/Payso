@@ -11,30 +11,60 @@ import { STABLECOIN_SYMBOLS } from '@/lib/contracts/config'
 export default function ScheduledPage() {
   const { address, isConnected } = useAccount()
   const { data: employer, error: employerError, isError: isEmployerError } = useEmployer()
-  const { data: isAuthorized, error: authError, isError: isAuthError } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
-  const { data: paymentIds, error: paymentIdsError, isError: isPaymentIdsError, isLoading } = useGetPaymentsByRecipient(address || '0x000000000000000000000000000000000000000000000000')
+  const { data: isAuthorized, error: authError, isError: isAuthError } = useIsAuthorizedEmployer(
+    address && isConnected ? address : undefined
+  )
+  const { data: paymentIds, error: paymentIdsError, isError: isPaymentIdsError, isLoading } = useGetPaymentsByRecipient(
+    address && isConnected ? address : undefined
+  )
   const { data: counter, error: counterError, isError: isCounterError, isLoading: isLoadingCounter } = usePaymentCounter()
 
-  const isEmployer = address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
+  // Enhanced error handling for contract reverts
+  const isContractRevertError = (error: any) => {
+    return error?.message?.includes('reverted') || 
+           error?.message?.includes('Contract Call') ||
+           error?.code === 'CALL_EXCEPTION'
+  }
 
-  // Debug logging
-  console.log('=== SCHEDULED PAGE DEBUG ===')
-  console.log('Connected address:', address)
-  console.log('Contract employer:', employer)
-  console.log('Employer error:', employerError)
-  console.log('Is employer error:', isEmployerError)
-  console.log('Is authorized:', isAuthorized)
-  console.log('Auth error:', authError)
-  console.log('Is auth error:', isAuthError)
-  console.log('Is employer:', isEmployer)
-  console.log('Payment counter:', counter)
-  console.log('Counter error:', counterError)
-  console.log('Is counter error:', isCounterError)
-  console.log('Payment IDs (employee view):', paymentIds)
-  console.log('Payment IDs error:', paymentIdsError)
-  console.log('Is payment IDs error:', isPaymentIdsError)
-  console.log('Total payment IDs to display:', isEmployer ? (counter ? Number(counter) : 0) : (paymentIds ? (paymentIds as any[]).length : 0))
-  console.log('==========================')
+  // Handle contract revert errors gracefully
+  const safeAuthError = authError && isContractRevertError(authError) ? null : authError
+  const safePaymentIdsError = paymentIdsError && isContractRevertError(paymentIdsError) ? null : paymentIdsError
+  const safeEmployerError = employerError && isContractRevertError(employerError) ? null : employerError
+  const safeCounterError = counterError && isContractRevertError(counterError) ? null : counterError
+
+  // Safe error state checks (true only if there's a real error, not a revert)
+  const safeIsAuthError = safeAuthError !== null
+  const safeIsEmployerError = safeEmployerError !== null
+  const safeIsCounterError = safeCounterError !== null
+  const safeIsPaymentIdsError = safePaymentIdsError !== null
+
+  // Determine if we should treat as authorized based on address match only (fallback for contract issues)
+  const isMainEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
+  const isAuthorizedFallback = isMainEmployer || (isConnected && address && isAuthorized === true)
+
+  const isEmployer = address && employer && isConnected && (
+    isMainEmployer || Boolean(isAuthorizedFallback)
+  )
+
+  // Debug logging - commented out for production
+  // console.log('=== SCHEDULED PAGE DEBUG ===')
+  // console.log('Connected address:', address)
+  // console.log('Is connected:', isConnected)
+  // console.log('Contract employer:', employer)
+  // console.log('Employer error:', employerError)
+  // console.log('Is employer error:', isEmployerError)
+  // console.log('Is authorized:', isAuthorized)
+  // console.log('Auth error:', authError)
+  // console.log('Is auth error:', isAuthError)
+  // console.log('Is employer:', isEmployer)
+  // console.log('Payment counter:', counter)
+  // console.log('Counter error:', counterError)
+  // console.log('Is counter error:', isCounterError)
+  // console.log('Payment IDs (employee view):', paymentIds)
+  // console.log('Payment IDs error:', paymentIdsError)
+  // console.log('Is payment IDs error:', isPaymentIdsError)
+  // console.log('Total payment IDs to display:', isEmployer ? (counter ? Number(counter) : 0) : (paymentIds ? (paymentIds as any[]).length : 0))
+  // console.log('==========================')
 
   const ids = (() => {
     if (isEmployer) {
@@ -67,14 +97,14 @@ export default function ScheduledPage() {
           </div>
         ) : (
           <>
-            {(isEmployer ? (isLoadingCounter || isEmployerError || isAuthError || isCounterError) : (isLoading || isPaymentIdsError)) ? (
+            {(isEmployer ? (isLoadingCounter || safeIsEmployerError || (isConnected && safeIsAuthError) || safeIsCounterError) : (isLoading || (isConnected && safeIsPaymentIdsError))) ? (
               <div className="bg-white/5 border-white/10 flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
                 <div className="px-6 py-12 text-center">
-                  {(isEmployer ? (isEmployerError || isAuthError || isCounterError) : isPaymentIdsError) ? (
+                  {(isEmployer ? (safeIsEmployerError || (isConnected && safeIsAuthError) || safeIsCounterError) : (isConnected && safeIsPaymentIdsError)) ? (
                     <>
                       <h3 className="text-lg font-semibold text-red-400 mb-2">Error Loading Payments</h3>
                       <p className="text-red-400/60 text-sm">
-                        {employerError?.message || authError?.message || counterError?.message || paymentIdsError?.message || 'Failed to load payment data'}
+                        {safeEmployerError?.message || (isConnected && safeAuthError?.message) || safeCounterError?.message || (isConnected && safePaymentIdsError?.message) || 'Failed to load payment data'}
                       </p>
                     </>
                   ) : (
