@@ -4,7 +4,7 @@
 
 'use client'
 
-import { LayoutDashboard, Wallet, Clock, Settings, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Wallet, Clock, Settings, LogOut, Menu, X, FileCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -12,11 +12,13 @@ import { useAccount, useDisconnect } from 'wagmi'
 import { formatAddress } from '@/lib/utils'
 import { useEmployer, useIsAuthorizedEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
 import { usePathname } from 'next/navigation'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 const employerNavItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
   { icon: Wallet, label: 'Schedule Payment', href: '/dashboard/payments' },
   { icon: Clock, label: 'Scheduled', href: '/dashboard/scheduled' },
+  { icon: FileCheck, label: 'Verify Work', href: '/dashboard/verify-work' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ]
 
@@ -120,6 +122,57 @@ export function Sidebar() {
 
           {/* User section */}
           <div className="pt-6 border-t border-white/10">
+            {isClient && !isConnected && (
+              <div className="mb-4">
+                <ConnectButton.Custom>
+                  {({
+                    account,
+                    chain,
+                    openAccountModal,
+                    openChainModal,
+                    openConnectModal,
+                    authenticationStatus,
+                    mounted,
+                  }) => {
+                    const ready = mounted && authenticationStatus !== 'loading'
+                    const connected =
+                      ready &&
+                      account &&
+                      chain &&
+                      (!authenticationStatus || authenticationStatus === 'authenticated')
+
+                    return (
+                      <div
+                        {...(!ready && {
+                          'aria-hidden': true,
+                          'style': {
+                            opacity: 0,
+                            pointerEvents: 'none',
+                            userSelect: 'none',
+                          },
+                        })}
+                      >
+                        {(() => {
+                          if (!connected) {
+                            return (
+                              <Button
+                                onClick={openConnectModal}
+                                variant="default"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                              >
+                                <Wallet className="h-4 w-4 mr-2" />
+                                Connect Wallet
+                              </Button>
+                            )
+                          }
+                          return null
+                        })()}
+                      </div>
+                    )
+                  }}
+                </ConnectButton.Custom>
+              </div>
+            )}
             {isClient && isConnected && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 mb-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold">

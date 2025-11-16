@@ -52,11 +52,7 @@ export default function DashboardPage() {
   //   console.log('=======================')
   // }, [address, employer, isAuthorized, employerLoading, authLoading, employerError, authError])
 
-  const isEmployer = address && (employer ? (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized) : fallbackEmployer)
-
-  // If contract calls are failing, show a warning but default to employer if address matches expected deployer
-  const contractFailed = employerError || authError || (!employer && !employerLoading) || (isAuthorized === undefined && !authLoading)
-  const fallbackEmployer = address && (address.toLowerCase() === '0x24f2c1199B390Ffe5de345495eDA04492dc4e12E'.toLowerCase())
+  const isEmployer = address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
 
   // Calculate statss
   const totalPayments = (paymentIds as any[])?.length || 0

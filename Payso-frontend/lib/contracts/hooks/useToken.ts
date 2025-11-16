@@ -1,5 +1,6 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { Address, formatUnits, parseUnits } from 'viem'
+import { useEffect } from 'react'
 import ERC20ABI from '../abis/ERC20.json'
 import { CONTRACT_ADDRESSES, TOKEN_DECIMALS } from '../config'
 
@@ -32,11 +33,24 @@ export function useTokenAllowance(
 }
 
 export function useApproveToken() {
-  const { writeContract, data: hash, error, isPending } = useWriteContract()
-  
+  const { writeContractAsync, data: hash, error, isPending } = useWriteContract()
+
   const { data: receipt, isLoading: isConfirming } = useWaitForTransactionReceipt({
     hash,
   })
+
+  // Add detailed logging for approval receipt
+  useEffect(() => {
+    if (receipt) {
+      console.log('🎉 Token approval confirmed! Receipt:', {
+        transactionHash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed?.toString(),
+        status: receipt.status,
+        logs: receipt.logs
+      })
+    }
+  }, [receipt])
 
   const approve = async (
     tokenAddress: Address,
@@ -44,13 +58,24 @@ export function useApproveToken() {
     amount: string
   ) => {
     const amountInWei = parseUnits(amount, TOKEN_DECIMALS)
-    
-    writeContract({
+
+    console.log('🔄 Token approval request:', {
+      tokenAddress,
+      spender,
+      amount,
+      amountInWei: amountInWei.toString()
+    })
+
+    // Use writeContractAsync to get the transaction hash
+    const txHash = await writeContractAsync({
       address: tokenAddress,
       abi: ERC20ABI,
       functionName: 'approve',
       args: [spender, amountInWei],
     })
+
+    console.log('✅ Approval transaction submitted:', txHash)
+    return txHash
   }
 
   return {

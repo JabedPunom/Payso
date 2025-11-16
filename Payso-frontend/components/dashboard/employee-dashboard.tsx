@@ -28,10 +28,12 @@ export function EmployeeDashboard() {
   )
 
   const handleClaimPayment = async (paymentId: bigint) => {
+    console.log('🎯 EmployeeDashboard: Attempting to claim payment', paymentId.toString())
     try {
       await claimPayment(paymentId)
+      console.log('✅ EmployeeDashboard: claimPayment function called successfully')
     } catch (error) {
-      console.error('Error claiming payment:', error)
+      console.error('❌ EmployeeDashboard: Error claiming payment:', error)
       showToast({
         title: 'Error',
         description: 'Failed to claim payment. Please try again.',
@@ -148,6 +150,13 @@ function PaymentCard({
   const { data: isClaimable } = useIsClaimable(paymentId)
   const { data: workVerified } = useWorkVerified(paymentId)
 
+  console.log('💳 PaymentCard: Debug info', {
+    paymentId: paymentId.toString(),
+    payment: payment,
+    isClaimable: isClaimable,
+    workVerified: workVerified
+  })
+
   if (!payment) return null
 
   const paymentData = payment as {
@@ -238,7 +247,10 @@ function PaymentCard({
 
       {status === 'claimable' && (
         <Button 
-          onClick={() => onClaim(paymentId)}
+          onClick={() => {
+            console.log('🖱️ PaymentCard: Claim button clicked for payment', paymentId.toString())
+            onClaim(paymentId)
+          }}
           disabled={isClaiming}
           className="w-full"
         >

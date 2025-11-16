@@ -3,10 +3,12 @@
 import { useAccount } from 'wagmi'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 import { Badge } from '@/components/ui/badge'
-import { Clock } from 'lucide-react'
+import { Clock, RefreshCw } from 'lucide-react'
 import { useEmployer, useIsAuthorizedEmployer, useGetPaymentsByRecipient, useGetPayment, useWorkVerified, usePaymentCounter } from '@/lib/contracts/hooks/usePayrollEscrow'
 import { formatTokenAmount, formatDateTime, getPaymentStatus, formatAddress } from '@/lib/contracts/utils'
 import { STABLECOIN_SYMBOLS } from '@/lib/contracts/config'
+import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function ScheduledPage() {
   const { address, isConnected } = useAccount()
@@ -18,6 +20,29 @@ export default function ScheduledPage() {
     address && isConnected ? address : undefined
   )
   const { data: counter, error: counterError, isError: isCounterError, isLoading: isLoadingCounter } = usePaymentCounter()
+  
+  // Track previous counter value to detect changes
+  const [previousCounter, setPreviousCounter] = useState<bigint | undefined>(undefined)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  // Force refresh data when component mounts or when address changes
+  useEffect(() => {
+    console.log('=== SCHEDULED PAGE MOUNT/REFRESH ===')
+    console.log('Timestamp:', new Date().toISOString())
+    console.log('Current address:', address)
+    console.log('Is connected:', isConnected)
+    console.log('Payment counter data:', counter)
+    console.log('Payment counter loading:', isLoadingCounter)
+    console.log('Previous counter:', previousCounter)
+    
+    // Detect if counter changed (new payment created)
+    if (counter !== undefined && previousCounter !== undefined && counter > previousCounter) {
+      console.log('🎉 NEW PAYMENT DETECTED! Counter changed from', previousCounter.toString(), 'to', counter.toString())
+    }
+    
+    setPreviousCounter(counter)
+    console.log('====================================')
+  }, [address, isConnected, counter, isLoadingCounter])
 
   // Enhanced error handling for contract reverts
   const isContractRevertError = (error: any) => {
@@ -38,42 +63,45 @@ export default function ScheduledPage() {
   const safeIsCounterError = safeCounterError !== null
   const safeIsPaymentIdsError = safePaymentIdsError !== null
 
-  // Determine if we should treat as authorized based on address match only (fallback for contract issues)
+  // Determine if we should treat as authorized based on address match only
   const isMainEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
-  const isAuthorizedFallback = isMainEmployer || (isConnected && address && isAuthorized === true)
 
-  const isEmployer = address && employer && isConnected && (
-    isMainEmployer || Boolean(isAuthorizedFallback)
+  const isEmployer = address && isConnected && employer && (
+    isMainEmployer || isAuthorized === true
   )
 
   // Debug logging - commented out for production
-  // console.log('=== SCHEDULED PAGE DEBUG ===')
-  // console.log('Connected address:', address)
-  // console.log('Is connected:', isConnected)
-  // console.log('Contract employer:', employer)
-  // console.log('Employer error:', employerError)
-  // console.log('Is employer error:', isEmployerError)
-  // console.log('Is authorized:', isAuthorized)
-  // console.log('Auth error:', authError)
-  // console.log('Is auth error:', isAuthError)
-  // console.log('Is employer:', isEmployer)
-  // console.log('Payment counter:', counter)
-  // console.log('Counter error:', counterError)
-  // console.log('Is counter error:', isCounterError)
-  // console.log('Payment IDs (employee view):', paymentIds)
-  // console.log('Payment IDs error:', paymentIdsError)
-  // console.log('Is payment IDs error:', isPaymentIdsError)
-  // console.log('Total payment IDs to display:', isEmployer ? (counter ? Number(counter) : 0) : (paymentIds ? (paymentIds as any[]).length : 0))
-  // console.log('==========================')
+  console.log('=== SCHEDULED PAGE DEBUG ===')
+  console.log('Connected address:', address)
+  console.log('Is connected:', isConnected)
+  console.log('Contract employer:', employer)
+  console.log('Is authorized:', isAuthorized)
+  console.log('Is employer:', isEmployer)
+  console.log('Payment counter:', counter)
+  console.log('Total payment IDs to display:', isEmployer ? (counter ? Number(counter) : 0) : (paymentIds ? (paymentIds as any[]).length : 0))
+  console.log('Refresh key:', refreshKey)
+  console.log('==========================')
 
   const ids = (() => {
     if (isEmployer) {
       const total = Number(counter || 0)
+      console.log('Employer view - Payment counter:', total)
       if (total <= 0) return []
-      return Array.from({ length: total }, (_, i) => BigInt(i + 1))
+      
+      // IMPORTANT: Payment IDs are 0-indexed in the contract!
+      // The first payment has ID 0, second has ID 1, etc.
+      // paymentCounter returns the next available ID, so if counter is 5, we have payments 0,1,2,3,4
+      const paymentIds = Array.from({ length: total }, (_, i) => BigInt(i))
+      console.log('Generated payment IDs (0-indexed):', paymentIds.map(id => id.toString()))
+      console.log('Expected payment range: 0 to', total - 1)
+      return paymentIds
     }
+    console.log('Employee view - Payment IDs:', paymentIds)
     return (paymentIds as any[]) || []
   })()
+
+  // Debug: Log the IDs being processed
+  console.log('Final IDs to process:', ids.map(id => id.toString()))
 
   return (
     <DashboardLayout>
@@ -86,6 +114,19 @@ export default function ScheduledPage() {
               {isEmployer ? 'View all your scheduled payroll payments' : 'View your upcoming payments'}
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log('Manual refresh triggered')
+              setRefreshKey(prev => prev + 1)
+              console.log('Refresh key updated to:', refreshKey + 1)
+            }}
+            className="border-white/20 text-white hover:bg-white/5"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
 
         {!isConnected ? (
@@ -131,8 +172,9 @@ export default function ScheduledPage() {
               </div>
             ) : (
               <div className="grid gap-4">
+                {console.log('Rendering payment cards for IDs:', ids.map((id: any) => id.toString()), 'Refresh key:', refreshKey)}
                 {ids.map((paymentId: any) => (
-                  <ScheduledPaymentCard key={paymentId.toString()} paymentId={paymentId} isEmployer={Boolean(isEmployer)} />
+                  <ScheduledPaymentCard key={`${paymentId.toString()}-${refreshKey}`} paymentId={paymentId} isEmployer={Boolean(isEmployer)} />
                 ))}
               </div>
             )}
@@ -144,10 +186,30 @@ export default function ScheduledPage() {
 }
 
 function ScheduledPaymentCard({ paymentId, isEmployer }: { paymentId: bigint; isEmployer: boolean }) {
-  const { data: payment } = useGetPayment(paymentId)
+  const { data: payment, error, isLoading } = useGetPayment(paymentId)
   const { data: workVerified } = useWorkVerified(paymentId)
 
-  if (!payment) return null
+  console.log(`Payment ID ${paymentId.toString()}:`, {
+    data: payment,
+    error: error,
+    isLoading: isLoading,
+    isEmployer: isEmployer
+  })
+
+  if (isLoading) {
+    console.log(`Payment ID ${paymentId.toString()}: Still loading...`)
+    return null
+  }
+
+  if (error) {
+    console.error(`Payment ID ${paymentId.toString()}: Error loading payment:`, error)
+    return null
+  }
+
+  if (!payment) {
+    console.log(`Payment ID ${paymentId.toString()}: No payment data returned`)
+    return null
+  }
 
   const paymentData = payment as {
     id: bigint
@@ -169,9 +231,16 @@ function ScheduledPaymentCard({ paymentId, isEmployer }: { paymentId: bigint; is
     currentTimestamp
   )
 
-  // For employees: only show pending payments
+  console.log(`Payment ID ${paymentId.toString()} status:`, status, 'Payment data:', paymentData)
+
+  // For employees: show pending and claimable payments (upcoming and ready to claim)
   // For employers: show all payments (we'll organize them by status later)
-  if (!isEmployer && status !== 'pending') return null
+  if (!isEmployer && (status !== 'pending' && status !== 'claimable')) {
+    console.log(`Filtering out payment ${paymentId.toString()} for employee - status:`, status)
+    return null
+  }
+  
+  console.log(`Showing payment ${paymentId.toString()} - status:`, status)
 
   return (
     <div className="bg-white/5 border-white/10 flex flex-col gap-6 rounded-xl border py-6 shadow-sm">

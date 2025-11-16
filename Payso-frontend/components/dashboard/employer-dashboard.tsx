@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useWaitForTransactionReceipt, usePublicClient } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,7 @@ import { formatTokenAmount, parseTokenAmount } from '@/lib/contracts/utils'
 
 export function EmployerDashboard() {
   const { address, isConnected } = useAccount()
+  const publicClient = usePublicClient()
   const showToast = (props: {title: string, description?: string, variant?: 'default' | 'destructive'}) => {
     if (props.variant === 'destructive') {
       toast.error(props.title, { description: props.description })
@@ -24,12 +25,15 @@ export function EmployerDashboard() {
       toast.success(props.title, { description: props.description })
     }
   }
-  const { depositAndSchedule, isPending, isConfirming } = usePayrollEscrow()
+  const { depositAndSchedule, isPending, isConfirming, receipt, error: txError } = usePayrollEscrow()
   const { approve, isPending: isApproving } = useApproveToken()
   const { data: employer } = useEmployer()
   const { data: isAuthorized } = useIsAuthorizedEmployer(
     address && isConnected ? address : undefined
   )
+
+  // Track if we've shown the success toast for this transaction
+  const [lastProcessedReceipt, setLastProcessedReceipt] = useState<string | null>(null)
 
   // Set default release date to tomorrow and time to 9:00 AM for better UX
   const getDefaultDateTime = () => {
@@ -59,6 +63,43 @@ export function EmployerDashboard() {
   const [amountError, setAmountError] = useState('')
 
   const isEmployer = address && (isAuthorized === true || (employer && address.toLowerCase() === (employer as string).toLowerCase()))
+
+  // Show success toast when transaction is confirmed
+  useEffect(() => {
+    if (receipt && receipt.transactionHash !== lastProcessedReceipt) {
+      console.log('✅ Transaction confirmed, showing success toast')
+      setLastProcessedReceipt(receipt.transactionHash)
+
+      showToast({
+        title: 'Payment scheduled successfully!',
+        description: 'Your payment has been confirmed on the blockchain.',
+      })
+
+      // Reset form with default datetime
+      const defaultDateTime = getDefaultDateTime()
+      setFormData({
+        recipient: '',
+        amount: '',
+        releaseDate: defaultDateTime.releaseDate,
+        releaseTime: defaultDateTime.releaseTime,
+        requiresWorkEvent: false,
+        stablecoin: CONTRACT_ADDRESSES.USDC,
+        preferredPayout: CONTRACT_ADDRESSES.EURC,
+      })
+    }
+  }, [receipt, lastProcessedReceipt])
+
+  // Show error toast when transaction fails
+  useEffect(() => {
+    if (txError) {
+      console.error('❌ Transaction error:', txError)
+      showToast({
+        title: 'Transaction failed',
+        description: txError.message || 'Failed to schedule payment. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }, [txError])
 
   // Custom date picker state
   const [showCalendar, setShowCalendar] = useState(false)
@@ -143,37 +184,77 @@ export function EmployerDashboard() {
       }
 
       // First approve the token
-      await approve(
+      console.log('🔄 Step 1: Approving token transfer:', {
+        token: formData.stablecoin,
+        spender: CONTRACT_ADDRESSES.PayrollEscrow,
+        amount: formData.amount
+      })
+
+      showToast({
+        title: 'Approving token...',
+        description: 'Please confirm the approval transaction in your wallet.',
+      })
+
+      const approvalTxHash = await approve(
         formData.stablecoin,
         CONTRACT_ADDRESSES.PayrollEscrow,
         formData.amount
       )
 
-      // Then schedule the payment
-      await depositAndSchedule(
-        formData.recipient as `0x${string}`,
-        formData.amount,
-        releaseTimestamp,
-        formData.requiresWorkEvent,
-        formData.stablecoin,
-        formData.preferredPayout
-      )
+      console.log('⏳ Waiting for approval transaction to be mined:', approvalTxHash)
 
       showToast({
-        title: 'Payment scheduled',
-        description: 'Your payment has been successfully scheduled.',
+        title: 'Approval submitted',
+        description: 'Waiting for approval transaction to be confirmed...',
       })
 
-      // Reset form with default datetime
-      setFormData({
-        recipient: '',
-        amount: '',
-        releaseDate: defaultDateTime.releaseDate,
-        releaseTime: defaultDateTime.releaseTime,
-        requiresWorkEvent: false,
-        stablecoin: CONTRACT_ADDRESSES.USDC,
-        preferredPayout: CONTRACT_ADDRESSES.EURC,
+      // Wait for approval transaction to be mined
+      if (publicClient) {
+        const approvalReceipt = await publicClient.waitForTransactionReceipt({
+          hash: approvalTxHash,
+        })
+        console.log('✅ Token approval confirmed:', approvalReceipt.transactionHash)
+      } else {
+        // Fallback: wait 5 seconds if publicClient is not available
+        console.log('⏳ Waiting 5 seconds for approval to be mined...')
+        await new Promise(resolve => setTimeout(resolve, 5000))
+      }
+
+      // Then schedule the payment
+      console.log('🔄 Step 2: Scheduling payment with params:', {
+        recipient: formData.recipient,
+        amount: formData.amount,
+        releaseTimestamp,
+        requiresWorkEvent: formData.requiresWorkEvent,
+        stablecoin: formData.stablecoin,
+        preferredPayout: formData.preferredPayout
       })
+
+      try {
+        await depositAndSchedule(
+          formData.recipient as `0x${string}`,
+          formData.amount,
+          releaseTimestamp,
+          formData.requiresWorkEvent,
+          formData.stablecoin,
+          formData.preferredPayout
+        )
+
+        console.log('📤 Payment transaction submitted, waiting for confirmation...')
+
+        // Show pending toast
+        showToast({
+          title: 'Payment transaction submitted',
+          description: 'Please wait for the transaction to be confirmed...',
+        })
+      } catch (error) {
+        console.error('❌ Error submitting payment transaction:', error)
+        showToast({
+          title: 'Error',
+          description: 'Failed to submit payment transaction. Please try again.',
+          variant: 'destructive',
+        })
+      }
     } catch (error) {
       console.error('Error scheduling payment:', error)
       showToast({
